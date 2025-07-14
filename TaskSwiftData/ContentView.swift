@@ -9,53 +9,35 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
-
+    
+    @Query private var tasks: [Tasks]
+    @State private var showAddTaskView: Bool = false
+    
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
+        NavigationStack{
+            List(tasks) {
+                task in
+                TaskRow(task: task)
+            }
+            .navigationTitle("Tasks")
+            .toolbar{
+                ToolbarItem(placement: .primaryAction) {
+                    Button{
+                        showAddTaskView = true
                     } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+                        Image(systemName: "plus")
                     }
-                }
-                .onDelete(perform: deleteItems)
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
+                    
                 }
             }
-        } detail: {
-            Text("Select an item")
         }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
+        .sheet(isPresented: $showAddTaskView){
+            NewTaskView()
         }
     }
 }
 
-#Preview {
+#Preview(traits: .sampleData) {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
 }
+
